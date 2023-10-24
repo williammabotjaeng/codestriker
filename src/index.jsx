@@ -50,9 +50,10 @@ const App = () => {
        return await getIssues(projectKey);
    });
 
-   const [todoData] = useState(async () => await fetchStoredData(context.contentId));
 
     const onSubmitFunction = async (formData) => {
+        const attachments = getIssueAttachments(formDAta.selectedIssue);
+        console.log("Attachments Response", attachments);
         const issueData = await getIssue(formData.selectedIssue);
         setFormState(issueData)
     };
@@ -60,31 +61,23 @@ const App = () => {
     return (
         <Fragment>
             <Heading size="medium">Generate Code Reviews for the Files in your Attachments</Heading>
-
             {/* 3. Event handler - functions that describe what to do when the user interacts with them. Example - onSubmit */}
-
             <Form onSubmit={onSubmitFunction}>
                 <Select label="Select an issue" name="selectedIssue" isRequired={true}>
-                
                 {/* *** CHALLENGE 1 - Customise UI *** */}
                 {/* =================== */}
                 
                 {/* TASK - Add the 'Option' UI element whose value will be individual issue key. */}
                 {/* HINT - https://developer.atlassian.com/platform/forge/ui-kit-components/form/#select */}
-
                     {issues.map(issue =>
                         <Option label={issue.key} value={issue.key} />
                     )}
-
                 {/* =================== */}
                 {/* *** END OF CHALLENGE *** */}
-
                 </Select>
-            </Form>
-            
+            </Form>          
             <Heading size="small"></Heading>
-            {formState && <Issue issueKey={formState.key} summary={formState.fields.summary} />}
-            
+            {formState && <Issue issueKey={formState.key} summary={formState.fields.summary} />}      
         </Fragment>
     );
 };
@@ -96,33 +89,6 @@ export const run = render(
   </IssuePanel>
 );
 
-
-// *** HELPERS ***
-
-const fetchStoredData = async (contentId) => {
-
-	await storage.set('todo-1', {name: 'Get groceries', status: 'In Progress'});
-	await storage.set('todo-2', {name: 'Pay bills', status: 'Completed'});
-  await storage.set('book-1', {name: 'Harry Potter', status: 'To read'});
-
-  // const data = await storage.query().getMany()
-
-  // *** CHALLENGE 3 - Storage API ***
-  // ===================
-
-  // TASK - Using Storage API, fetch values only of 'todo' type. That means, values where 'key' starts with 'todo'.
-  // HINT - https://developer.atlassian.com/platform/forge/runtime-reference/storage-api-query/
-
-  const data = await storage.query().where('key', startsWith('todo')).getMany();
-
-  // ===================
-  // *** END OF CHALLENGE ***
-  
-  console.log("Storage API Data - " + JSON.stringify(data));
-  
-  return data;
-
-};
 
 const getIssue = async (issueKey) => {
   
@@ -165,3 +131,47 @@ const getIssues = async (projectKey) => {
 }
 
 
+const getIssueAttachments = async (issueKey) => {
+    const attachmentsData = await api.asUser().requestJira(route`/rest/api/3/issue/${issueKey}/attachments`, {
+      headers: {
+        'Accept': 'application/json'
+      }
+    });
+
+    console.log("Func Attachments", attachmentsData)
+
+    const attachmentsResponse = await attachmentsData.json();
+
+    const attachments = attachmentsResponse.map(attachment => ({
+      id: attachment.id,
+      filename: attachment.filename,
+      size: attachment.size
+    }));
+
+    return attachments;
+  };
+
+  const getIssueAttachment = async (issueKey) => {
+    const attachmentsData = await api.asUser().requestJira(route`/rest/api/3/issue/${issueKey}/attachments`, {
+      headers: {
+        'Accept': 'application/json'
+      }
+    });
+
+    const attachmentsResponse = await attachmentsData.json();
+
+    if (attachmentsResponse.length > 0) {
+      const attachment = attachmentsResponse[0];
+      const attachmentContent = await api.asUser().requestJira(route`/rest/api/3/attachment/${attachment.id}/download`, {
+        headers: {
+          'Accept': 'application/json'
+        }
+      });
+
+      const attachmentContentResponse = await attachmentContent.json();
+
+      // Save the attachment content here
+
+      console.log("Attachment Content", attachmentContentResponse);
+    }
+  };
