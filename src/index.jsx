@@ -52,7 +52,7 @@ const App = () => {
 
 
     const onSubmitFunction = async (formData) => {
-        const attachments = getIssueAttachments(formDAta.selectedIssue);
+        const attachments = await getIssueAttachment();
         console.log("Attachments Response", attachments);
         const issueData = await getIssue(formData.selectedIssue);
         setFormState(issueData)
@@ -130,7 +130,6 @@ const getIssues = async (projectKey) => {
     return returnData;
 }
 
-
 const getIssueAttachments = async (issueKey) => {
     const attachmentsData = await api.asUser().requestJira(route`/rest/api/3/issue/${issueKey}/attachments`, {
       headers: {
@@ -142,6 +141,8 @@ const getIssueAttachments = async (issueKey) => {
 
     const attachmentsResponse = await attachmentsData.json();
 
+    console.log("Attachments Response", attachmentsResponse);
+
     const attachments = attachmentsResponse.map(attachment => ({
       id: attachment.id,
       filename: attachment.filename,
@@ -151,27 +152,14 @@ const getIssueAttachments = async (issueKey) => {
     return attachments;
   };
 
-  const getIssueAttachment = async (issueKey) => {
-    const attachmentsData = await api.asUser().requestJira(route`/rest/api/3/issue/${issueKey}/attachments`, {
+  const getIssueAttachment = async () => {
+    const attachmentsData = await api.asUser().requestJira(route`/rest/api/3/attachment/content/10000`, {
       headers: {
         'Accept': 'application/json'
       }
     });
 
     const attachmentsResponse = await attachmentsData.json();
-
-    if (attachmentsResponse.length > 0) {
-      const attachment = attachmentsResponse[0];
-      const attachmentContent = await api.asUser().requestJira(route`/rest/api/3/attachment/${attachment.id}/download`, {
-        headers: {
-          'Accept': 'application/json'
-        }
-      });
-
-      const attachmentContentResponse = await attachmentContent.json();
-
-      // Save the attachment content here
-
-      console.log("Attachment Content", attachmentContentResponse);
-    }
+    
+    return attachmentsResponse;
   };
