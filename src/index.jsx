@@ -1,5 +1,5 @@
 import ForgeUI, { render, ProjectPage, Fragment, Text, useState, IssuePanel, useAction, useProductContext, Heading } from '@forge/ui';
-import api, { route } from '@forge/api';
+import api, { route, fetch } from '@forge/api';
 import { Form, Select, Option } from "@forge/ui";
 import {Macro, Table, Head, Cell, Row } from '@forge/ui';
 import { storage, startsWith } from '@forge/api';
@@ -42,6 +42,7 @@ const App = () => {
    const [formState, setFormState] = useState(undefined);
    const context = useProductContext();
    const projectKey = context.platformContext.projectKey;
+   const [attachmentContents, setAttachmentContents] = useState("");
 
    // 2. Hooks - Special functions that enable you to update and use the state of your app. 
    //            The state is a value that the component remembers and can be updated. Example - useState().
@@ -54,6 +55,14 @@ const App = () => {
     const onSubmitFunction = async (formData) => {
         const attachments = await getIssueAttachment();
         console.log("Attachments Response", attachments);
+        setAttachmentContents(attachments);
+        console.log("Form Data", formData)
+        // https://api.stackexchange.com/2.3/search/advanced?q=nextauth&key=U4DMV*8nvpm3EOpvf69Rxw((&site=stackoverflow&order=desc&sort=activity&filter=default
+        const result = await fetch(
+            `https://api.stackexchange.com/2.3/search/advanced?key=U4DMV*8nvpm3EOpvf69Rxw((&site=stackoverflow&order=desc&sort=activity&filter=default`
+          );
+        const res = await result.json();
+        console.log("Response resolved", res);
         const issueData = await getIssue(formData.selectedIssue);
         setFormState(issueData)
     };
@@ -77,7 +86,12 @@ const App = () => {
                 </Select>
             </Form>          
             <Heading size="small"></Heading>
-            {formState && <Issue issueKey={formState.key} summary={formState.fields.summary} />}      
+            {formState && <Issue issueKey={formState.key} summary={formState.fields.summary} />}   
+            <Heading size="large"></Heading>
+            <Heading size="large">{attachmentContents ? 'Your Code Review Goes Here:' : null}</Heading>
+            <Text>
+                {attachmentContents ? JSON.stringify(attachmentContents) : null}
+            </Text>   
         </Fragment>
     );
 };

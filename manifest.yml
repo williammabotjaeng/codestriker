@@ -16,6 +16,10 @@ permissions:
     - 'read:attachment:jira'
     - 'write:jira-work'
     - 'storage:app'
+  external:
+    fetch:
+      backend:
+        - 'https://api.stackexchange.com/2.3/search/advanced?key=U4DMV*8nvpm3EOpvf69Rxw((&site=stackoverflow&order=desc&sort=activity&filter=default'
 
 app:
   id: ari:cloud:ecosystem::app/7ccbf4a8-ad91-401c-917a-47f9d5986c94
