@@ -1,0 +1,21 @@
+modules:
+  jira:issuePanel:
+    - key: codestriker-hello-world-panel
+      function: main
+      title: CodeStriker
+      icon: https://developer.atlassian.com/platform/forge/images/icons/issue-panel-icon.svg
+  function:
+    - key: main
+      handler: index.run
+
+permissions:
+  scopes:
+    - 'read:me'
+    - 'read:jira-user'
+    - 'read:jira-work'
+    - 'read:attachment:jira'
+    - 'write:jira-work'
+    - 'storage:app'
+
+app:
+  id: ari:cloud:ecosystem::app/7ccbf4a8-ad91-401c-917a-47f9d5986c94
